@@ -1,0 +1,13 @@
+#!/bin/bash
+PUSER=akul
+PDB=oauth_lit_db
+psql -v ON_ERROR_STOP=1 --username $PUSER --dbname $PDB <<-EOSQL
+  BEGIN;
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE TABLE IF NOT EXISTS links (
+	  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+	  drive_id CHAR(44) NOT NULL CHECK (CHAR_LENGTH(drive_id) = 44),
+	  requirements JSON NOT NULL
+	);
+  COMMIT;
+EOSQL

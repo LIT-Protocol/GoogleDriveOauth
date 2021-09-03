@@ -18,6 +18,8 @@ function App() {
     const signIn = () => {
 
     }
+
+
     
     const responseS = (response) => {
 	console.log(response);
@@ -46,20 +48,27 @@ function App() {
 
 
       function authenticate() {
-    return gapi.auth2.getAuthInstance()
-        .signIn({scope: "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file"})
-              .then(function() { console.log("Sign-in successful"); responseS(); },
-              function(err) { console.error("Error signing in", err); });
+	  return gapi.auth2.getAuthInstance().grantOfflineAccess().then((authResult) =>
+	      {
+		  if (authResult.code) {
+		      setToken(authResult.code)
+		  } else {
+		      console.log("Error logging in")
+		  }
+	      })
   }
     
       gapi.load("client:auth2", function() {
-    gapi.auth2.init({client_id: "788318511760-576lveaqp1v3fk921tfo8k9rqf19ljp0.apps.googleusercontent.com"});
+	  gapi.auth2.init({
+	      client_id: "788318511760-576lveaqp1v3fk921tfo8k9rqf19ljp0.apps.googleusercontent.com",
+	      scope: "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file"
+	  });
       });
 
     const [link, setLink] = useState("");
-    const [role, setRole] = useState("read");
+    const [role, setRole] = useState(0);
     const [modalOpen, setModalOpen] = useState(false);
-
+    const [token, setToken] = useState("");
     const [restrictions, setRestrictions] = useState([]);
 
     const addToRestrictions = (r) => {
@@ -79,10 +88,23 @@ function App() {
 	const requestOptions = {
 	    method: 'POST',
 	    headers: { 'Content-Type': 'application/json' },
-	    body: JSON.stringify({ 'drive-id': id, "role": role, "allowed-groups": restrictions})
+	    body: JSON.stringify({ 'drive-id': id, "role": role, "token": token, "allowed-groups": restrictions})
 	}
-	fetch('http://localhost:3001/api/share', requestOptions)
-	    .then(response => console.log(response));
+	fetch('http://testoauth.com:8080/api/share', requestOptions)
+	    .then(response => response.text())
+	    .then(data => setLink(data));
+    }
+    const responseG = (response) => {
+	console.log(response)
+	setToken(response.code)
+    }    
+
+    if (token === "") { // TODO need to clarify what happens w/ failure
+	return <div className="App">
+	    <header className="App-header">
+	    <button type="button" onClick={authenticate}>Log in with Google</button>
+	    </header>
+	    </div>
     }
     
   return (
@@ -95,10 +117,8 @@ function App() {
 	  Please allow this app to share your files on your behalf.
         </p>
 
-
-
       // Form ask for role, file URL
-	  <form  onSubmit={handleSubmit}>
+	  <form>
 	  <label for="drive-link">
 	  Drive Link
 	  </label>      
@@ -118,12 +138,12 @@ function App() {
 	  <label for="drive-role">
 	  Drive Role to share
           </label>
-	  <select name="drive-role" id="drive-role" onChange={e => setRole(e.target.value)}>
+	  <select name="drive-role" id="drive-role" onChange={e => setRole(parseInt(e.target.selectedIndex))}>
 	  <option value="read">Read</option>
 	  <option value="comment">Comment</option>
 	  <option value="write">Write</option>
 	  </select>      
-          <input type="submit" value="Get share link"/>
+	  <button type="button" onClick={handleSubmit}>Get share link</button>
 	  </form>      
       </header>	   
 	  

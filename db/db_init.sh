@@ -12,8 +12,9 @@ psql -v ON_ERROR_STOP=1 --username $PUSER --dbname $PDB <<-EOSQL
     CREATE TABLE IF NOT EXISTS links (
 	  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	  drive_id CHAR(44) NOT NULL CHECK (CHAR_LENGTH(drive_id) = 44),
+	  role INT NOT NULL,
 	  requirements JSON NOT NULL,
-	  sharer_id INT,
+	  sharer_id INT NOT NULL,
 	  CONSTRAINT fk_sharer_id
 	      FOREIGN KEY(sharer_id)
 	          REFERENCES sharers(id)

@@ -51,21 +51,24 @@ function Link() {
     async function provisionAccess() {
 	const chain = "polygon";
 	const resourceId = {
-	    baseUrl: "http://localhost:8080",
+	    baseUrl: "http://localhost:8080",//http://localhost:8080",
 	    path: "/l/" + uuid,
 	    orgId: "",
-	    role: linkData["role"],
+	    role: linkData["role"].toString(),
 	    extraData: "",
 	};
 
 	const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain });
 
-	const jwt = await litNodeClient.getSignedToken({
+	const params = {
 	    accessControlConditions: linkData["requirements"],
 	    chain: chain,
 	    authSig: authSig,
 	    resourceId: resourceId,
-	});
+	};
+	console.log(params)
+	
+	const jwt = await litNodeClient.getSignedToken(params);
 
 	return jwt;
     }
@@ -145,6 +148,5 @@ function Link() {
 	);
     }
 }
-// Test link: http://testoauth.com/l/cce96c50-67f8-4b8c-a0a1-4dda0e1720a1
-// Test link no reqs: http://testoauth.com/l/5eb1da32-a04d-435b-bb93-9aa277b45b82
+// New share link: http://localhost:8080/l/4fbe2a79-9880-4b71-ada1-55603fadcd1c
 export default Link;

@@ -81,7 +81,7 @@ function App() {
 		    baseUrl: "http://localhost:8080",
 		    path: "/l/" + uuid,
 		    orgId: "",
-		    role: role,
+		    role: role.toString(),
 		    extraData: "",
 		};
 		const chain = "polygon";

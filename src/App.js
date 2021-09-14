@@ -70,10 +70,9 @@ function App() {
 	fetch("http://localhost:8080/api/share", requestOptions)
 	    .then((response) => response.json())
 	    .then(async (data) => {
-		console.log(data);
 		const accessControlConditions = data["authorizedControlConditions"];
 		const uuid = data["uuid"];
-		console.log(accessControlConditions);
+
 		const authSig = await LitJsSdk.checkAndSignAuthMessage({
 		    chain: "polygon",
 		});
@@ -85,8 +84,7 @@ function App() {
 		    extraData: "",
 		};
 		const chain = "polygon";
-		console.log(accessControlConditions);
-		console.log("About to save");
+
 		await litNodeClient.saveSigningCondition({
 		    accessControlConditions,
 		    chain,

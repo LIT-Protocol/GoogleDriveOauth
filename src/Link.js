@@ -25,13 +25,11 @@ function Link() {
 		.then(async (data) => {
 		    setConditionsFetched(true);
 
-		    var litNodeClient = new LitJsSdk.LitNodeClient();
+		    const litNodeClient = new LitJsSdk.LitNodeClient();
 		    await litNodeClient.connect();
 		    setLitNodeClient(litNodeClient);
-		    console.log(data["requirements"]);
-		    console.log(typeof data["role"]);
+
 		    setLinkData(data);
-		    console.log(data);
 		})
 		.catch((err) => {
 		    setError("Invalid link");
@@ -59,14 +57,13 @@ function Link() {
 	};
 
 	const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain });
-
+	
 	const params = {
 	    accessControlConditions: linkData["requirements"],
 	    chain: chain,
 	    authSig: authSig,
 	    resourceId: resourceId,
 	};
-	console.log(params)
 	
 	const jwt = await litNodeClient.getSignedToken(params);
 
@@ -114,9 +111,9 @@ function Link() {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({ email, role, uuid, jwt }),
 	    };
-	    fetch("http://localhost:8080/api/share", requestOptions)
+	    fetch("http://localhost:8080/api/sharelink", requestOptions)
 		.then((response) => response.text())
-		.then((data) => console.log(data));
+		.then((data) => window.location.replace("https://docs.google.com/document/d/"+data));
 	});
     };
 

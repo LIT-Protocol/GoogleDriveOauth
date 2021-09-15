@@ -146,6 +146,5 @@ function Link() {
     );
   }
 }
-// Test link: http://testoauth.com/l/cce96c50-67f8-4b8c-a0a1-4dda0e1720a1
-// Test link no reqs: http://testoauth.com/l/5eb1da32-a04d-435b-bb93-9aa277b45b82
+// New share link: http://localhost:8080/l/4fbe2a79-9880-4b71-ada1-55603fadcd1c
 export default Link;

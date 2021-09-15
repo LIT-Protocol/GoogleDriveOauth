@@ -6,7 +6,7 @@ const app = express();
 const { google } = require("googleapis");
 const { Pool } = require("pg");
 const path = require("path");
-const LitJsSDK = require("lit-js-sdk");
+const LitJsSdk = require("lit-js-sdk");
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -28,9 +28,6 @@ app.use(bodyParser.json());
 
 router.post("/share", async (req, res) => {
     // First - get Google Drive refresh token (given acct email and drive)
-    console.log(req.body);
-    console.log(JSON.stringify(req.body.accessControlConditions));
-    // Create a path to Google
     const jwt = new google.auth.OAuth2(
 	GOOGLE_CLIENT_KEY,
 	GOOGLE_CLIENT_SECRET,
@@ -40,10 +37,9 @@ router.post("/share", async (req, res) => {
     jwt.setCredentials(tokens);
     refresh_token = "";
     if (tokens.refresh_token) {
-	console.log("Have refresh token!", tokens.refresh_token);
 	refresh_token = tokens.refresh_token;
     }
-    console.log("Credentials set");
+    
     // Now, get email + save information
     const drive = google.drive({
 	version: "v3",
@@ -54,7 +50,6 @@ router.post("/share", async (req, res) => {
 	fields: "user",
     });
 
-    console.log(about_info.data.user.emailAddress);
     let id = "";
     // Write to DB
     if (refresh_token !== "") {
@@ -169,7 +164,7 @@ router.post("/delete", async (req, res) => {
 router.post("/conditions", async (req, res) => {
     const uuid = req.body.uuid;
     const query = {
-	text: "SELECT requirements, drive_id, role FROM links WHERE id = $1",
+	text: "SELECT requirements, role FROM links WHERE id = $1",
 	values: [uuid],
     };
 
@@ -185,10 +180,10 @@ router.post("/conditions", async (req, res) => {
     res.end(JSON.stringify(data));
 });
 
-router.post("/share", async (req, res) => {
+router.post("/sharelink", async (req, res) => {
     // Check the supplied JWT
     const requested_email = req.body.email;
-    const role = req.body.role;
+    const role = req.body.role.toString();
     const uuid = req.body.uuid;
     const jwt = req.body.jwt;
     const { verified, header, payload } = LitJsSdk.verifyJwt({ jwt });
@@ -197,13 +192,12 @@ router.post("/share", async (req, res) => {
 	    payload.baseUrl !== "http://localhost:8080" ||
 	    payload.path !== "/l/" + uuid ||
 	    payload.orgId !== "" ||
-	    payload.role !== "" ||
+	    payload.role !== role ||
 	    payload.extraData !== ""
-    ) {
+    ) {	
 	res.end("JWT verification failed.");
 	return;
     }
-    console.log("Verified");
 
     // Ping google drive to share the file using the refresh token
     // Get latest refresh token

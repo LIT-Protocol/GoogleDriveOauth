@@ -4,7 +4,7 @@ import "./App.css";
 import { ShareModal } from "lit-access-control-conditions-modal";
 import LitJsSdk from "lit-js-sdk";
 
-const GOOGLE_CLIENT_KEY = process.env.CLIENT_KEY;
+const GOOGLE_CLIENT_KEY = process.env.REACT_APP_CLIENT_KEY;
 
 function App() {
   const gapi = window.gapi;
@@ -77,8 +77,9 @@ function App() {
         const accessControlConditions = data["authorizedControlConditions"];
         const uuid = data["uuid"];
         console.log(accessControlConditions);
+        const chain = accessControlConditions[0].chain;
         const authSig = await LitJsSdk.checkAndSignAuthMessage({
-          chain: "polygon",
+          chain,
         });
         const resourceId = {
           baseUrl: "http://localhost:8080",
@@ -87,7 +88,6 @@ function App() {
           role: role.toString(),
           extraData: "",
         };
-        const chain = "polygon";
         console.log(accessControlConditions);
         console.log("About to save");
         await litNodeClient.saveSigningCondition({

@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import LitJsSdk from "lit-js-sdk";
 
-const GOOGLE_CLIENT_KEY = process.env.CLIENT_KEY;
-
 function Link() {
   const gapi = window.gapi;
 
@@ -42,7 +40,7 @@ function Link() {
   }, []);
 
   async function provisionAccess() {
-    const chain = "polygon";
+    const chain = linkData.requirements[0].chain;
     const resourceId = {
       baseUrl: "http://localhost:8080",
       path: "/l/" + uuid,
@@ -51,11 +49,11 @@ function Link() {
       extraData: "",
     };
 
-    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain: chain });
+    const authSig = await LitJsSdk.checkAndSignAuthMessage({ chain });
 
     const jwt = await litNodeClient.getSignedToken({
       accessControlConditions: linkData["requirements"],
-      chain: chain,
+      chain,
       authSig: authSig,
       resourceId: resourceId,
     });

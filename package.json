@@ -15,7 +15,7 @@
     "gapi-script": "^1.2.0",
     "googleapis": "^84.0.0",
     "http2": "^3.3.7",
-    "lit-access-control-conditions-modal": "^1.1.6",
+    "lit-access-control-conditions-modal": "^1.1.7",
     "lit-js-sdk": "^1.1.66",
     "pg": "^8.7.1",
     "react": "^17.0.2",

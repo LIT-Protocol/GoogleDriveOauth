@@ -8652,10 +8652,10 @@ lines-and-columns@^1.1.6:
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz#1c00c743b433cd0a4e80758f7b64a57440d9ff00"
   integrity sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
 
-lit-access-control-conditions-modal@^1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/lit-access-control-conditions-modal/-/lit-access-control-conditions-modal-1.1.6.tgz#900735c259fe85fdc7c43b959f8a94c41f8b23cd"
-  integrity sha512-E/b0ZCnydS62vFdpljFGzpk3gPXIzLw/axJT3OSIQoilFmVmToaG4zmjAi1jhqD3wkdWvMLf3nqwG7R8TL0ksw==
+lit-access-control-conditions-modal@^1.1.7:
+  version "1.1.7"
+  resolved "https://registry.yarnpkg.com/lit-access-control-conditions-modal/-/lit-access-control-conditions-modal-1.1.7.tgz#f9208fa5c34cf71ad3b0ecd0af9a4f11732ebb05"
+  integrity sha512-TjyBZXkB0AhbELi4AmYMxYYT9uumkTy+DfvvrURESauxr9+K5qy8tKeMTRGY6uDFRDL9Kkvhz+Ocj+fnSEl96A==
   dependencies:
     "@babel/polyfill" "^7.12.1"
     "@consta/uikit" "^3.0.0"

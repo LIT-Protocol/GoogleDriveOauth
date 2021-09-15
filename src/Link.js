@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import LitJsSdk from "lit-js-sdk";
 
+const GOOGLE_CLIENT_KEY = process.env.CLIENT_KEY;
+
 function Link() {
   const gapi = window.gapi;
 
@@ -38,15 +40,6 @@ function Link() {
         });
     }
   }, []);
-
-  gapi.load("client:auth2", function () {
-    gapi.auth2.init({
-      client_id:
-        "788318511760-576lveaqp1v3fk921tfo8k9rqf19ljp0.apps.googleusercontent.com",
-      scope:
-        "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file",
-    });
-  });
 
   async function provisionAccess() {
     const chain = "polygon";
@@ -113,7 +106,7 @@ function Link() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, role, uuid, jwt }),
       };
-      fetch("http://localhost:8080/api/share", requestOptions)
+      fetch("http://localhost:8080/api/sharelink", requestOptions)
         .then((response) => response.text())
         .then((data) => console.log(data));
     });

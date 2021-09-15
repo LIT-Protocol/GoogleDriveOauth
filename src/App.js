@@ -2,8 +2,9 @@ import { useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import { ShareModal } from "lit-access-control-conditions-modal";
-import { GoogleLogin } from "react-google-login";
 import LitJsSdk from "lit-js-sdk";
+
+const GOOGLE_CLIENT_KEY = process.env.CLIENT_KEY;
 
 function App() {
   const gapi = window.gapi;
@@ -36,8 +37,7 @@ function App() {
 
   gapi.load("client:auth2", function () {
     gapi.auth2.init({
-      client_id:
-        "770315957372-em8a7ur994vogpn6dqhjq4olo0f8tcds.apps.googleusercontent.com",
+      client_id: GOOGLE_CLIENT_KEY,
       scope:
         "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file",
     });

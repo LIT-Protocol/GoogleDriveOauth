@@ -108,7 +108,10 @@ function Link() {
       };
       fetch("http://localhost:8080/api/sharelink", requestOptions)
         .then((response) => response.text())
-        .then((data) => console.log(data));
+        .then(
+          (data) =>
+            (window.location = `https://docs.google.com/document/d/${data}`)
+        );
     });
   };
 

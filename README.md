@@ -13,19 +13,19 @@ Run `db/db_init.sh` to create a db. You must have psql running already.
 
 Run `yarn build` or `npm run build` with the following env variables:
 
-`REACT_APP_CLIENT_KEY`: Google Client Key
+`REACT_APP_CLIENT_KEY`: Google Client Key\
 `REACT_APP_BASE_URL`: the URL that this app will be sending requests to
 
 ## Run server
 
-Run `yarn start` or `npm run start` with the following env variables:
-`DB_USER`: The user for the local PSQL server
-`DB_HOST`: The host for the psql db
-`DB`: the db to use
-`DB_PASS`: The db password
-`DB_PORT`: The db port
-`CLIENT_KEY`: Google Client Key
-`CLIENT_SECRET`: Google Client Secret, same as `REACT_APP_CLIENT_KEY`
+Run `yarn start` or `npm run start` with the following env variables:\
+`DB_USER`: The user for the local PSQL server\
+`DB_HOST`: The host for the psql db\
+`DB`: the db to use\
+`DB_PASS`: The db password\
+`DB_PORT`: The db port\
+`CLIENT_KEY`: Google Client Key\
+`CLIENT_SECRET`: Google Client Secret, same as `REACT_APP_CLIENT_KEY`\
 `BASE_URL`: The URL that this app runs on, same as `REACT_APP_BASE_URL`
 
 # Getting Started with Create React App

@@ -18,6 +18,7 @@ const pool = new Pool({
 
 const GOOGLE_CLIENT_KEY = process.env.CLIENT_KEY;
 const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
+const BASE_URL = process.env.BASE_URL;
 
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
@@ -26,15 +27,35 @@ app.listen(PORT, () => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+async function runQuery(query, subfield) {
+  const data = await (async () => {
+    const client = await pool.connect();
+    try {
+      const res = await client.query(query);
+      return res.rows[0];
+    } finally {
+      client.release();
+    }
+  })().catch((err) => {
+    console.log(err.stack);
+    throw err;
+  });
+  if (subfield) {
+    return data[subfield];
+  } else {
+    return data;
+  }
+}
+
 router.post("/share", async (req, res) => {
   // First - get Google Drive refresh token (given acct email and drive)
-  const jwt = new google.auth.OAuth2(
+  const oauth_client = new google.auth.OAuth2(
     GOOGLE_CLIENT_KEY,
     GOOGLE_CLIENT_SECRET,
-    "http://localhost:8080"
+    BASE_URL
   );
-  const { tokens } = await jwt.getToken(req.body.token);
-  jwt.setCredentials(tokens);
+  const { tokens } = await oauth_client.getToken(req.body.token);
+  oauth_client.setCredentials(tokens);
   refresh_token = "";
   if (tokens.refresh_token) {
     refresh_token = tokens.refresh_token;
@@ -43,7 +64,7 @@ router.post("/share", async (req, res) => {
   // Now, get email + save information
   const drive = google.drive({
     version: "v3",
-    auth: jwt,
+    auth: oauth_client,
   });
 
   const about_info = await drive.about.get({
@@ -54,39 +75,24 @@ router.post("/share", async (req, res) => {
   // Write to DB
   if (refresh_token !== "") {
     const query = {
-      text: "INSERT INTO sharers(email, latest_refresh_token) VALUES($1, $2) ON CONFLICT (email) DO UPDATE SET latest_refresh_token = $2 RETURNING *",
+      text:
+        "INSERT INTO sharers(email, latest_refresh_token) VALUES($1, $2) ON CONFLICT (email) DO UPDATE SET latest_refresh_token = $2 RETURNING *",
       values: [about_info.data.user.emailAddress, refresh_token],
     };
 
-    id = await (async () => {
-      const client = await pool.connect();
-      try {
-        const res = await client.query(query);
-        return res.rows[0].id;
-      } finally {
-        client.release();
-      }
-    })().catch((err) => console.log(err.stack));
+    id = await runQuery(query, "id");
   } else {
-    // Get row
     const query = {
       text: "SELECT id FROM sharers WHERE email = $1",
       values: [about_info.data.user.emailAddress],
     };
 
-    id = await (async () => {
-      const client = await pool.connect();
-      try {
-        const res = await client.query(query);
-        return res.rows[0].id;
-      } finally {
-        client.release();
-      }
-    })().catch((err) => console.log(err.stack));
+    id = await runQuery(query, "id");
   }
 
   const query = {
-    text: "INSERT INTO links(drive_id, requirements, sharer_id, role) VALUES($1, $2, $3, $4) RETURNING *",
+    text:
+      "INSERT INTO links(drive_id, requirements, sharer_id, role) VALUES($1, $2, $3, $4) RETURNING *",
     values: [
       req.body.driveId,
       JSON.stringify(req.body.accessControlConditions),
@@ -95,15 +101,7 @@ router.post("/share", async (req, res) => {
     ],
   };
 
-  let uuid = await (async () => {
-    const client = await pool.connect();
-    try {
-      const res = await client.query(query);
-      return res.rows[0].id;
-    } finally {
-      client.release();
-    }
-  })().catch((err) => console.log(err.stack));
+  let uuid = await runQuery(query, "id");
   res.end(
     JSON.stringify({
       authorizedControlConditions: req.body.accessControlConditions,
@@ -115,17 +113,17 @@ router.post("/share", async (req, res) => {
 router.post("/delete", async (req, res) => {
   const uuid = req.body.uuid;
   // get email from token
-  const jwt = new google.auth.OAuth2(
+  const oauth_client = new google.auth.OAuth2(
     GOOGLE_CLIENT_KEY,
     GOOGLE_CLIENT_SECRET,
-    "http://localhost:8080"
+    BASE_URL
   );
-  const { tokens } = await jwt.getToken(req.body.token);
-  jwt.setCredentials(tokens);
+  const { tokens } = await oauth_client.getToken(req.body.token);
+  oauth_client.setCredentials(tokens);
 
   const drive = google.drive({
     version: "v3",
-    auth: jwt,
+    auth: oauth_client,
   });
 
   const about_info = await drive.about.get({
@@ -134,22 +132,12 @@ router.post("/delete", async (req, res) => {
 
   email = about_info.data.user.emailAddress;
   const query = {
-    text: "DELETE FROM links USING links AS l LEFT OUTER JOIN sharers ON l.sharer_id = sharers.id WHERE links.id = l.id AND links.id = $1 AND sharers.email = $2",
+    text:
+      "DELETE FROM links USING links AS l LEFT OUTER JOIN sharers ON l.sharer_id = sharers.id WHERE links.id = l.id AND links.id = $1 AND sharers.email = $2",
     values: [uuid, email],
   };
 
-  let deleted_row = await (async () => {
-    const client = await pool.connect();
-    try {
-      const res = await client.query(query);
-      return res.rows[0];
-    } finally {
-      client.release();
-    }
-  })().catch((err) => {
-    console.log(err);
-    return "error";
-  });
+  let deleted_row = await runQuery(query);
 
   if (deleted_row === "error") {
     return res.status(400).send();
@@ -165,15 +153,7 @@ router.post("/conditions", async (req, res) => {
     values: [uuid],
   };
 
-  let data = await (async () => {
-    const client = await pool.connect();
-    try {
-      const res = await client.query(query);
-      return res.rows[0];
-    } finally {
-      client.release();
-    }
-  })().catch((err) => console.log(err.stack));
+  let data = await runQuery(query);
   res.end(JSON.stringify(data));
 });
 
@@ -186,7 +166,7 @@ router.post("/sharelink", async (req, res) => {
   const { verified, header, payload } = LitJsSdk.verifyJwt({ jwt });
   if (
     !verified ||
-    payload.baseUrl !== "http://localhost:8080" ||
+    payload.baseUrl !== BASE_URL ||
     payload.path !== "/l/" + uuid ||
     payload.orgId !== "" ||
     payload.role !== role ||
@@ -199,29 +179,22 @@ router.post("/sharelink", async (req, res) => {
   // Ping google drive to share the file using the refresh token
   // Get latest refresh token
   const query = {
-    text: "select sharers.latest_refresh_token as token, links.drive_id as drive_id from links left join sharers on links.sharer_id = sharers.id WHERE links.id = $1",
+    text:
+      "select sharers.latest_refresh_token as token, links.drive_id as drive_id from links left join sharers on links.sharer_id = sharers.id WHERE links.id = $1",
     values: [uuid],
   };
 
-  let data = await (async () => {
-    const client = await pool.connect();
-    try {
-      const res = await client.query(query);
-      return res.rows[0];
-    } finally {
-      client.release();
-    }
-  })().catch((err) => console.log(err.stack));
+  let data = await runQuery(query);
   const refresh_token = data.token;
   const drive_id = data.drive_id;
 
-  const jwt_client = new google.auth.OAuth2(
+  const oauth_client = new google.auth.OAuth2(
     GOOGLE_CLIENT_KEY,
     GOOGLE_CLIENT_SECRET,
-    "http://localhost:8080"
+    BASE_URL
   );
 
-  jwt_client.setCredentials({ refresh_token });
+  oauth_client.setCredentials({ refresh_token });
   const roles = ["reader", "commenter", "writer"];
 
   const permission = {
@@ -231,7 +204,7 @@ router.post("/sharelink", async (req, res) => {
   };
   const drive = google.drive({
     version: "v3",
-    auth: jwt_client,
+    auth: oauth_client,
   });
 
   await drive.permissions.create({

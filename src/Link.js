@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import LitJsSdk from "lit-js-sdk";
 
+const GOOGLE_CLIENT_KEY = process.env.REACT_APP_CLIENT_KEY;
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
 function Link() {
   const gapi = window.gapi;
 
@@ -11,6 +14,14 @@ function Link() {
   const [email, setEmail] = useState("");
   const [uuid, setUuid] = useState("");
 
+  gapi.load("client:auth2", function () {
+    gapi.auth2.init({
+      client_id: GOOGLE_CLIENT_KEY,
+      scope:
+        "https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file",
+    });
+  });    
+
   useEffect(() => {
     if (conditionsFetched === false) {
       const uuid = /[^/]*$/.exec(window.location.pathname)[0];
@@ -20,7 +31,7 @@ function Link() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uuid: uuid }),
       };
-      fetch("http://localhost:8080/api/conditions", requestOptions)
+      fetch(BASE_URL+"/api/conditions", requestOptions)
         .then((response) => response.json())
         .then(async (data) => {
           setConditionsFetched(true);
@@ -42,7 +53,7 @@ function Link() {
   async function provisionAccess() {
     const chain = linkData.requirements[0].chain;
     const resourceId = {
-      baseUrl: "http://localhost:8080",
+      baseUrl: BASE_URL,
       path: "/l/" + uuid,
       orgId: "",
       role: linkData["role"].toString(),
@@ -75,9 +86,9 @@ function Link() {
               token: authResult.code,
             }),
           };
-          fetch("http://localhost:8080/api/delete", requestOptions)
+          fetch(BASE_URL+"/api/delete", requestOptions)
             .then((res) => {
-              if (res.status == 500) {
+              if (res.status === 500) {
                 setError(
                   "Error deleting link; were you the creator of this link?"
                 );
@@ -140,5 +151,5 @@ function Link() {
     );
   }
 }
-// New share link: http://localhost:8080/l/4fbe2a79-9880-4b71-ada1-55603fadcd1c
+
 export default Link;

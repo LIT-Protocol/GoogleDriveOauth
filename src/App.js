@@ -1,15 +1,14 @@
 import { useState } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import { ShareModal } from "lit-access-control-conditions-modal";
 import LitJsSdk from "lit-js-sdk";
 
 const GOOGLE_CLIENT_KEY = process.env.REACT_APP_CLIENT_KEY;
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 function App() {
   const gapi = window.gapi;
 
-  const [googleAccessKey, setGoogleAccessKey] = useState("");
   const [litNodeClient, setLitNodeClient] = useState({});
   const [link, setLink] = useState("");
   const [shareLink, setShareLink] = useState("");
@@ -17,7 +16,6 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [token, setToken] = useState("");
   const [accessControlConditions, setAccessControlConditions] = useState([]);
-  const [linkToDelete, setLinkToDelete] = useState("");
 
   function authenticate() {
     return gapi.auth2
@@ -70,7 +68,7 @@ function App() {
         accessControlConditions: accessControlConditions,
       }),
     };
-    fetch("http://localhost:8080/api/share", requestOptions)
+    fetch(BASE_URL+"/api/share", requestOptions)
       .then((response) => response.json())
       .then(async (data) => {
         console.log(data);
@@ -82,7 +80,7 @@ function App() {
           chain,
         });
         const resourceId = {
-          baseUrl: "http://localhost:8080",
+          baseUrl: BASE_URL,
           path: "/l/" + uuid,
           orgId: "",
           role: role.toString(),
@@ -96,7 +94,7 @@ function App() {
           authSig,
           resourceId,
         });
-        setShareLink("http://localhost:8080/l/" + uuid);
+        setShareLink(BASE_URL+"/l/" + uuid);
       });
   };
 

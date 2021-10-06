@@ -18,7 +18,8 @@ const pool = new Pool({
 
 const GOOGLE_CLIENT_KEY = process.env.CLIENT_KEY;
 const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
-const BASE_URL = process.env.BASE_URL;
+const GOOGLE_REDIRECT_URL = "postmessage";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 app.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
@@ -52,8 +53,9 @@ router.post("/share", async (req, res) => {
   const oauth_client = new google.auth.OAuth2(
     GOOGLE_CLIENT_KEY,
     GOOGLE_CLIENT_SECRET,
-    BASE_URL
+    GOOGLE_REDIRECT_URL
   );
+  console.log("getting tokens with token", req.body.token);
   const { tokens } = await oauth_client.getToken(req.body.token);
   oauth_client.setCredentials(tokens);
   refresh_token = "";
@@ -75,8 +77,7 @@ router.post("/share", async (req, res) => {
   // Write to DB
   if (refresh_token !== "") {
     const query = {
-      text:
-        "INSERT INTO sharers(email, latest_refresh_token) VALUES($1, $2) ON CONFLICT (email) DO UPDATE SET latest_refresh_token = $2 RETURNING *",
+      text: "INSERT INTO sharers(email, latest_refresh_token) VALUES($1, $2) ON CONFLICT (email) DO UPDATE SET latest_refresh_token = $2 RETURNING *",
       values: [about_info.data.user.emailAddress, refresh_token],
     };
 
@@ -91,8 +92,7 @@ router.post("/share", async (req, res) => {
   }
 
   const query = {
-    text:
-      "INSERT INTO links(drive_id, requirements, sharer_id, role) VALUES($1, $2, $3, $4) RETURNING *",
+    text: "INSERT INTO links(drive_id, requirements, sharer_id, role) VALUES($1, $2, $3, $4) RETURNING *",
     values: [
       req.body.driveId,
       JSON.stringify(req.body.accessControlConditions),
@@ -116,7 +116,7 @@ router.post("/delete", async (req, res) => {
   const oauth_client = new google.auth.OAuth2(
     GOOGLE_CLIENT_KEY,
     GOOGLE_CLIENT_SECRET,
-    BASE_URL
+    GOOGLE_REDIRECT_URL
   );
   const { tokens } = await oauth_client.getToken(req.body.token);
   oauth_client.setCredentials(tokens);
@@ -132,8 +132,7 @@ router.post("/delete", async (req, res) => {
 
   email = about_info.data.user.emailAddress;
   const query = {
-    text:
-      "DELETE FROM links USING links AS l LEFT OUTER JOIN sharers ON l.sharer_id = sharers.id WHERE links.id = l.id AND links.id = $1 AND sharers.email = $2",
+    text: "DELETE FROM links USING links AS l LEFT OUTER JOIN sharers ON l.sharer_id = sharers.id WHERE links.id = l.id AND links.id = $1 AND sharers.email = $2",
     values: [uuid, email],
   };
 
@@ -179,8 +178,7 @@ router.post("/sharelink", async (req, res) => {
   // Ping google drive to share the file using the refresh token
   // Get latest refresh token
   const query = {
-    text:
-      "select sharers.latest_refresh_token as token, links.drive_id as drive_id from links left join sharers on links.sharer_id = sharers.id WHERE links.id = $1",
+    text: "select sharers.latest_refresh_token as token, links.drive_id as drive_id from links left join sharers on links.sharer_id = sharers.id WHERE links.id = $1",
     values: [uuid],
   };
 
@@ -191,7 +189,7 @@ router.post("/sharelink", async (req, res) => {
   const oauth_client = new google.auth.OAuth2(
     GOOGLE_CLIENT_KEY,
     GOOGLE_CLIENT_SECRET,
-    BASE_URL
+    GOOGLE_REDIRECT_URL
   );
 
   oauth_client.setCredentials({ refresh_token });
